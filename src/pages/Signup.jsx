@@ -47,7 +47,7 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/signup', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,8 @@ export default function Signup() {
         setError(data.message || 'Signup failed. Please try again.');
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      const errorMessage = err.message || 'An error occurred. Please try again.';
+      setError(errorMessage);
       console.error('Signup error:', err);
     } finally {
       setIsLoading(false);

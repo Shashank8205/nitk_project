@@ -16,7 +16,18 @@ export async function apiLogin(email, password, role) {
     body: JSON.stringify({ email, password, role }),
   });
   const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Login failed');
+  if (!res.ok) throw new Error(data.message || 'Login failed');
+  return data;
+}
+
+export async function apiSignup(firstName, lastName, email, password, role) {
+  const res = await fetch(`${API_BASE}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ firstName, lastName, email, password, role }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.message || 'Signup failed');
   return data;
 }
 
