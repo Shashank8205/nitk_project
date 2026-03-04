@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import DoctorDashboard from './dashboards/DoctorDashboard';
 import PatientDashboard from './dashboards/PatientDashboard';
 import ResearcherDashboard from './dashboards/ResearcherDashboard';
+import PatientDetail from './pages/PatientDetail';
 
 export default function App() {
   return (
@@ -19,6 +20,14 @@ export default function App() {
         element={
           <ProtectedRoute role="doctor">
             <DoctorDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/patients/:patientId"
+        element={
+          <ProtectedRoute role="doctor">
+            <PatientDetail />
           </ProtectedRoute>
         }
       />

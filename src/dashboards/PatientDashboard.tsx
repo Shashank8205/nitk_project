@@ -13,7 +13,7 @@ export default function PatientDashboard() {
   const [sessionId, setSessionId] = useState(null);
 
   useEffect(() => {
-    apiGetSessions().then((res) => setSessions(res.sessions)).catch(() => {});
+    apiGetSessions().then((sessions) => setSessions(sessions)).catch(() => {});
   }, []);
 
   const handleFile = async (file) => {
@@ -27,7 +27,7 @@ export default function PatientDashboard() {
       setRawData(data);
       setColumns(cols);
 
-      apiGetSessions().then((res) => setSessions(res.sessions)).catch(() => {});
+      apiGetSessions().then((sessions) => setSessions(sessions)).catch(() => {});
     } catch (err) {
       console.error('CSV parse error:', err);
     }

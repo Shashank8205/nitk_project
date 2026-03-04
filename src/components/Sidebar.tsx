@@ -49,7 +49,7 @@ export default function Sidebar({ role }) {
             <span className="text-white text-xs font-bold">{user?.name?.charAt(0) || 'U'}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm text-white truncate">{user?.name}</p>
+            <p className="text-sm text-white truncate">{user?.firstName || user?.name}</p>
             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
           </div>
         </div>

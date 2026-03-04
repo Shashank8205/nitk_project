@@ -1,14 +1,21 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { apiRegister } from '../utils/api';
 
 export default function Signup() {
   const [role, setRole] = useState('patient');
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
+    // Common fields
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    // Doctor specific
+    doctorName: '',
+    doctorPhone: '',
+    uniqueId: '',
+    // Patient specific
+    patientName: '',
+    patientPhone: ''
   });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -29,9 +36,16 @@ export default function Signup() {
     setSuccess('');
 
     // Validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
-      setError('All fields are required');
-      return;
+    if (role === 'doctor') {
+      if (!formData.doctorName.trim() || !formData.doctorPhone.trim() || !formData.email.trim() || !formData.uniqueId.trim() || !formData.password.trim() || !formData.confirmPassword.trim()) {
+        setError('All fields are required');
+        return;
+      }
+    } else {
+      if (!formData.patientName.trim() || !formData.patientPhone.trim() || !formData.email.trim() || !formData.password.trim() || !formData.confirmPassword.trim()) {
+        setError('All fields are required');
+        return;
+      }
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -47,30 +61,34 @@ export default function Signup() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          role: role
-        })
-      });
+      const payload = {
+        email: formData.email.trim(),
+        password: formData.password.trim(),
+        role: role
+      };
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setSuccess('Account created successfully! Redirecting to login...');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+      if (role === 'doctor') {
+        payload.name = `Dr. ${formData.doctorName.trim()}`;
+        payload.phone = formData.doctorPhone.trim();
+        payload.uniqueId = formData.uniqueId.trim();
       } else {
-        setError(data.message || 'Signup failed. Please try again.');
+        payload.name = formData.patientName.trim();
+        payload.phone = formData.patientPhone.trim();
       }
+
+      const data = await apiRegister(
+        payload.email, 
+        payload.password, 
+        payload.role, 
+        payload.name,
+        payload.phone,
+        payload.uniqueId
+      );
+
+      setSuccess('Account created successfully! Redirecting to login...');
+      setTimeout(() => {
+        navigate('/login');
+      }, 2000);
     } catch (err) {
       const errorMessage = err.message || 'An error occurred. Please try again.';
       setError(errorMessage);
@@ -151,35 +169,93 @@ export default function Signup() {
 
           {/* Signup Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">First Name</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
-                  placeholder="John"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Last Name</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
-                  placeholder="Doe"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-            </div>
+            {/* Doctor Signup Fields */}
+            {role === 'doctor' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-3 text-gray-400 font-medium">Dr.</span>
+                    <input
+                      type="text"
+                      name="doctorName"
+                      value={formData.doctorName}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 pl-12 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
+                      placeholder="Rajesh Kumar"
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                  {formData.doctorName && (
+                    <p className="text-xs text-gray-400 mt-1">You will be registered as: <span className="text-gray-200 font-medium">Dr. {formData.doctorName}</span></p>
+                  )}
+                </div>
 
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="doctorPhone"
+                    value={formData.doctorPhone}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
+                    placeholder="+91 98765 43210"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">NMC Registration Number</label>
+                  <input
+                    type="text"
+                    name="uniqueId"
+                    value={formData.uniqueId}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
+                    placeholder="1234567/KA"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Patient Signup Fields */}
+            {role === 'patient' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                  <input
+                    type="text"
+                    name="patientName"
+                    value={formData.patientName}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
+                    placeholder="Arun Singh"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Phone Number</label>
+                  <input
+                    type="tel"
+                    name="patientPhone"
+                    value={formData.patientPhone}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
+                    placeholder="+91 98765 43210"
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Common Fields */}
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
               <input
@@ -188,7 +264,7 @@ export default function Signup() {
                 value={formData.email}
                 onChange={handleChange}
                 className={`w-full px-4 py-3 bg-dark-700 border border-dark-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-${config.color} focus:border-transparent transition`}
-                placeholder="your@email.com"
+                placeholder="name@example.com"
                 disabled={isLoading}
                 required
               />

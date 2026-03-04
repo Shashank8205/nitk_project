@@ -4,6 +4,8 @@ export default {
   theme: {
     extend: {
       colors: {
+        bg: '#0a0e17',
+        'bg-soft': '#111827',
         dark: {
           900: '#0a0e17',
           800: '#111827',
@@ -25,6 +27,9 @@ export default {
           light: '#fb923c',
           dark: '#ea580c',
         },
+      },
+      boxShadow: {
+        'soft-glow': '0 0 30px rgba(59, 130, 246, 0.1)',
       },
     },
   },
